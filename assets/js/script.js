@@ -159,59 +159,112 @@ var getAnime = {
   // console.log(json);
 
  },
- episode: async function(eps_slug,
-  anime_slug) {
+ episode: async function(eps_slug, anime_slug) {
   let res = await fetch("https://otakudesu-unofficial-api.vercel.app/v1/episode/" + eps_slug);
   let eps = await res.json();
-  // console.log(eps);
   if (eps.status != "Ok") {
-   nothingHere()
+    nothingHere();
   } else {
-   document.title = `${eps.data.episode} - OtaquDesu`;
-   document.getElementsByTagName("meta")["description"].content = `Unduh, Nonton, & Streaming Anime ${eps.data.episode} resolusi 360p, 480p, 720p, HD, HR format Mp4 dan Mkv lengkap beserta Batch. (Situs ini dibuat dengan OtakuDesu API/Scraper)`;
-   document.querySelector("meta[property='og:title']").content = `${eps.data.episode} - OtaquDesu`;
-   document.querySelector("meta[property='og:description']").content = `Unduh, Nonton, & Streaming Anime ${eps.data.episode} resolusi 360p, 480p, 720p, HD, HR format Mp4 dan Mkv lengkap beserta Batch. (Situs ini dibuat dengan OtakuDesu API/Scraper)`;
+    document.title = `${eps.data.episode} - OtaquDesu`;
+    document.getElementsByTagName("meta")["description"].content = `Unduh, Nonton, & Streaming Anime ${eps.data.episode} resolusi 360p, 480p, 720p, HD, HR format Mp4 dan Mkv lengkap beserta Batch.`;
+    document.querySelector("meta[property='og:title']").content = `${eps.data.episode} - OtaquDesu`;
+    document.querySelector("meta[property='og:description']").content = `Unduh, Nonton, & Streaming Anime ${eps.data.episode} resolusi 360p, 480p, 720p, HD, HR format Mp4 dan Mkv lengkap beserta Batch.`;
 
-   document.querySelector("iframe").src = eps.data.stream_url;
-   let prev = document.querySelector("#prev");
-   let next = document.querySelector("#next");
-   if (eps.data.has_previous_episode) {
-    prev.href = `/episode/?eps_slug=${eps.data.previous_episode.slug}&anime_slug=${anime_slug}`;
-    prev.classList.remove("btn-disabled");
-   }
-   if (eps.data.has_next_episode) {
-    next.href = `/episode/?eps_slug=${eps.data.next_episode.slug}&anime_slug=${anime_slug}`;
-    next.classList.remove("btn-disabled");
-   }
-   document.querySelector("#episode").innerText = eps.data.episode;
-   document.querySelector("#download-menu").innerHTML = `${eps.data.download_urls.mp4.map((d) => '<li class="menu-title"><span>'+d.resolution+'</span></li><li>'+ (d.urls.map((u) => "<a target='_blank' href='"+u.url+"'>"+u.provider+"</a>").join("")) +'</li>').join("")}`
+    let style = document.createElement('style');
+    style.innerHTML = `
+      .iframe-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+      }
+      .iframe-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+    `;
+    document.head.appendChild(style);
 
-   let Res = await fetch("https://otakudesu-unofficial-api.vercel.app/v1/anime/" + anime_slug);
-   let anime = await Res.json();
-   document.querySelector("meta[property='og:image']").content = anime.data.poster;   
-   if (anime.status == "Ok") {
-    document.querySelector("#episode_lists").innerHTML = `${anime.data.episode_lists.map((eps, i) => '<option '+(eps_slug == eps.slug ? "selected disabled": "")+' value="/episode/?eps_slug='+eps.slug+'&anime_slug='+anime_slug+'">Episode '+Math.floor(i+1)+(/(End)/gi.test(eps.episode) ? " (End)" : "")+'</option>').join('')}`;
-    document.querySelector("main > section").innerHTML += `<a href="/anime/?slug=${anime_slug}" class="w-full bg-base-100 rounded-box relative overflow-hidden p-3 flex flex-row gap-3 hover:bg-primary hover:text-primary-content duration-100 items-center" style="animation:fadeInUp .4s ease-in; height:8.95rem" title="${anime.data.title}" alt="${anime.data.title}">
-    <img src="https://images.weserv.nl/?url=${anime.data.poster}&q=10&w=225&h=318&fit=contain&cbg=black&output=webp&default=https://i.ibb.co/CsgfGYT/noImage.jpg" class="rounded-lg h-full" alt="${anime.data.title}" title="${anime.data.title}">
-    <div class="flex flex-col gap-0.5">
-    <span class="text-sm flex flex-row items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="currentColor" class="w-5 h-5 scale-"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>${anime.data.rating ? anime.data.rating:'?'} • ${anime.data.status} • ${anime.data.type}</span>
-    <h4 class="font-bold line-clamp-1 break-words">${anime.data.title}</h4>
-    <h5 class="text-sm font-medium line-clamp-1 break-words">${anime.data.japanese_title}</h5>
-    <small class="text-sm line-clamp-1">${anime.data.studio}</small>
-    <small class="text-sm line-clamp-1 break-words italic">${anime.data.genres.map((g) => g.name).join(', ')}</small>
-    </div>
-    </a>
- ${anime.data.batch ? '<section class="flex flex-col gap-1"><h4 class="text-xl font-bold">Batch</h4><div class="flex flex-row items-center relative h-20" style="animation:fadeInUp .4s ease-in"><div class="bg-base-100 rounded-l-box p-4 flex-1 flex flex-col justify-center gap-1 h-full"><a href="/batch/?slug='+anime.data.batch.slug+'" class="line-clamp-1 font-medium link link-hover">'+anime.data.title+' Batch Subtitle Indonesia</a><small>'+anime.data.batch.uploaded_at.replace(",", ", ")+'</small></div><a href="/batch/?slug='+anime.data.batch.slug+'" alt="'+anime.data.title+' Batch Subtitle Indonesia" title="'+anime.data.title+' Batch Subtitle Indonesia" class="rounded-r-box bg-base-100 h-full hover:bg-primary hover:text-primary-content p-5 flex justify-center items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">   <path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clip-rule="evenodd" /> </svg> </a></div></section>': ''}
- <div class="divider"></div>`;
-    document.querySelector("main").innerHTML += `<aside><section class="flex flex-col gap-3 px-4" style="animation: fadeInUp .4s ease-in">
-    <h3 class="text-xl font-bold">Rekomendasi Anime Lainnya</h3>
-    ${anime.data.recommendations.map((i) => '<a href="/anime/?slug='+i.slug+'" title="'+i.title+'" class="rounded-box overflow-hidden bg-base-100 flex flex-row items-center h-32 hover:bg-primary hover:text-primary-content transition duration-150 ease-in-out"><img src="https://images.weserv.nl/?url='+i.poster+'&q=10&w=225&h=318&fit=contain&cbg=black&output=webp&default=https://i.ibb.co/CsgfGYT/noImage.jpg" class="h-32" alt="'+i.title+'" title="'+i.title+'"><figcaption class="text-lg font-medium p-4 line-clamp-3">'+i.title+'</figcaption></figure></a>').join("")}
-    </section></aside>`;
-   } else {
-    //
-   }
+    let iframeHTML = `
+      <div class="iframe-container">
+        <iframe src="${eps.data.stream_url}" frameborder="0" allowfullscreen></iframe>
+      </div>`;
+    document.querySelector("main").innerHTML = iframeHTML;
+
+    let prev = document.querySelector("#prev");
+    let next = document.querySelector("#next");
+    if (eps.data.has_previous_episode) {
+      prev.href = `/episode/?eps_slug=${eps.data.previous_episode.slug}&anime_slug=${anime_slug}`;
+      prev.classList.remove("btn-disabled");
+    }
+    if (eps.data.has_next_episode) {
+      next.href = `/episode/?eps_slug=${eps.data.next_episode.slug}&anime_slug=${anime_slug}`;
+      next.classList.remove("btn-disabled");
+    }
+
+    document.querySelector("#episode").innerText = eps.data.episode;
+    document.querySelector("#download-menu").innerHTML = eps.data.download_urls.mp4.map((d) =>
+      `<li class="menu-title"><span>${d.resolution}</span></li>
+       <li>${d.urls.map((u) => `<a target='_blank' href='${u.url}'>${u.provider}</a>`).join("")}</li>`
+    ).join("");
+
+    let Res = await fetch("https://otakudesu-unofficial-api.vercel.app/v1/anime/" + anime_slug);
+    let anime = await Res.json();
+    document.querySelector("meta[property='og:image']").content = anime.data.poster;
+
+    if (anime.status == "Ok") {
+      document.querySelector("#episode_lists").innerHTML = anime.data.episode_lists.map((eps, i) =>
+        `<option ${(eps_slug == eps.slug ? "selected disabled" : "")} value="/episode/?eps_slug=${eps.slug}&anime_slug=${anime_slug}">Episode ${Math.floor(i + 1)}${(/(End)/gi.test(eps.episode) ? " (End)" : "")}</option>`
+      ).join('');
+
+      document.querySelector("main > section").innerHTML += `
+      <a href="/anime/?slug=${anime_slug}" class="w-full bg-base-100 rounded-box relative overflow-hidden p-3 flex flex-row gap-3 hover:bg-primary hover:text-primary-content duration-100 items-center" style="animation:fadeInUp .4s ease-in; height:8.95rem" title="${anime.data.title}" alt="${anime.data.title}">
+        <img src="https://images.weserv.nl/?url=${anime.data.poster}&q=10&w=225&h=318&fit=contain&cbg=black&output=webp&default=https://i.ibb.co/CsgfGYT/noImage.jpg" class="rounded-lg h-full" alt="${anime.data.title}" title="${anime.data.title}">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-sm flex flex-row items-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="currentColor" class="w-5 h-5 scale-"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>${anime.data.rating ? anime.data.rating:'?'} • ${anime.data.status} • ${anime.data.type}</span>
+          <h4 class="font-bold line-clamp-1 break-words">${anime.data.title}</h4>
+          <h5 class="text-sm font-medium line-clamp-1 break-words">${anime.data.japanese_title}</h5>
+          <small class="text-sm line-clamp-1">${anime.data.studio}</small>
+          <small class="text-sm line-clamp-1 break-words italic">${anime.data.genres.map((g) => g.name).join(', ')}</small>
+        </div>
+      </a>`;
+
+      document.querySelector("main").innerHTML += anime.data.batch ? `
+        <section class="flex flex-col gap-1">
+          <h4 class="text-xl font-bold">Batch</h4>
+          <div class="flex flex-row items-center relative h-20" style="animation:fadeInUp .4s ease-in">
+            <div class="bg-base-100 rounded-l-box p-4 flex-1 flex flex-col justify-center gap-1 h-full">
+              <a href="/batch/?slug=${anime.data.batch.slug}" class="line-clamp-1 font-medium link link-hover">${anime.data.title} Batch Subtitle Indonesia</a>
+              <small>${anime.data.batch.uploaded_at.replace(",", ", ")}</small>
+            </div>
+            <a href="/batch/?slug=${anime.data.batch.slug}" alt="${anime.data.title} Batch Subtitle Indonesia" title="${anime.data.title} Batch Subtitle Indonesia" class="rounded-r-box bg-base-100 h-full hover:bg-primary hover:text-primary-content p-5 flex justify-center items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                <path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clip-rule="evenodd" />
+              </svg>
+            </a>
+          </div>
+        </section>` : '';
+
+      document.querySelector("main").innerHTML += `
+        <aside>
+          <section class="flex flex-col gap-3 px-4" style="animation: fadeInUp .4s ease-in">
+            <h3 class="text-xl font-bold">Rekomendasi Anime Lainnya</h3>
+            ${anime.data.recommendations.map((i) =>
+              `<a href="/anime/?slug=${i.slug}" title="${i.title}" class="rounded-box overflow-hidden bg-base-100 flex flex-row items-center h-32 hover:bg-primary hover:text-primary-content transition duration-150 ease-in-out">
+                <img src="https://images.weserv.nl/?url=${i.poster}&q=10&w=225&h=318&fit=contain&cbg=black&output=webp&default=https://i.ibb.co/CsgfGYT/noImage.jpg" class="h-32" alt="${i.title}" title="${i.title}">
+                <figcaption class="text-lg font-medium p-4 line-clamp-3">${i.title}</figcaption>
+              </a>`
+            ).join("")}
+          </section>
+        </aside>`;
+    }
   }
- },
+},
  info: function(slug) {
   fetch("https://otakudesu-unofficial-api.vercel.app/v1/anime/" + slug).then((r) => r.json()).then((j) => {
    // console.log(j);
